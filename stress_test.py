@@ -1,9 +1,9 @@
 import requests, time, statistics, concurrent.futures
 
-API_URL = 'https://XXXXXXX.execute-api.ap-south-1.amazonaws.com/prod'  # replace with your URL
-SHORT_CODE = 'aB3kP9'  # replace with your code
+API_URL = 'https://tg9mlyqb01.execute-api.ap-south-1.amazonaws.com/prod'
+SHORT_CODE = 'YfH7kE'  # https://github.com/Tarun-Vaibhav-V/url-shortener-aws
 N_REQUESTS = 1000
-CONCURRENCY = 20
+CONCURRENCY = 8  # account Lambda concurrency limit is 10 on new accounts; stay under it
 
 
 def one_request(_):

@@ -12,15 +12,22 @@ GET /{code}           -> Lambda (redirect.py)  -> DynamoDB lookup + click log ->
 GET /analytics/{code} -> Lambda (analytics.py) -> DynamoDB query -> JSON
 ```
 
-## Benchmark (ap-south-1, 1,000 requests)
+## Benchmark (ap-south-1, 1,000 requests, 8 concurrent)
 
-| Metric | Value |
-|--------|-------|
-| p50 latency | ~20ms |
-| p95 latency | ~45ms |
-| p99 latency | <100ms |
-| Error rate | 0% |
-| Monthly capacity | ~1M req ($0 on Free Tier) |
+Server-side Lambda duration (CloudWatch, warm) and end-to-end client latency
+(measured from a client to the Mumbai region over the public internet):
+
+| Metric | Server-side (Lambda) | End-to-end (client) |
+|--------|----------------------|---------------------|
+| p50 | ~176ms | 252ms |
+| p95 | ~280ms | 280ms |
+| p99 | ~526ms | 526ms |
+| Error rate | 0% | 0% |
+| Monthly capacity | ~1M req ($0 on Free Tier) | |
+
+The `GET /{code}` path performs two DynamoDB operations per request (URL lookup +
+click-event write), which is the bulk of the server-side time. End-to-end latency
+is dominated by network round-trip to the region.
 
 ## Usage
 
@@ -51,4 +58,4 @@ Every push to `main` triggers: `pytest` -> package -> `aws lambda update-functio
 
 ## Resume bullet
 
-Built a serverless URL shortener on AWS (API Gateway, Lambda, DynamoDB) with real-time analytics (geo, device, click-through rate); deployed via GitHub Actions CI/CD. Handles ~1M req/month at <50ms p99 latency with $0 infrastructure cost.
+Built a serverless URL shortener on AWS (API Gateway, Lambda, DynamoDB) with real-time analytics (geo, device, click-through rate); deployed via GitHub Actions CI/CD. Handles ~1M req/month with 0% error rate at $0 infrastructure cost on the AWS Free Tier.
