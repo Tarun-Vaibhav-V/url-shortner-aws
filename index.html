@@ -190,7 +190,7 @@
 <div class="wrap">
 
   <div class="topbar">
-    <div class="logo"><span class="dot">🔗</span> SHORTLY</div>
+    <div class="logo"><span class="dot"></span> SHORTLY</div>
     <a class="pill" href="https://github.com/Tarun-Vaibhav-V/url-shortner-aws" target="_blank" rel="noopener">View source ↗</a>
   </div>
 
@@ -209,7 +209,7 @@
 
     <!-- Shorten card -->
     <div class="card">
-      <h2>✂️ Shorten</h2>
+      <h2>Shorten</h2>
       <div class="sub">Paste a long link, get a short one.</div>
       <label for="urlInput">Long URL</label>
       <input type="text" id="urlInput" placeholder="https://example.com/very/long/path" />
@@ -219,7 +219,7 @@
 
     <!-- Analytics card -->
     <div class="card">
-      <h2>📊 Analytics</h2>
+      <h2>Analytics</h2>
       <div class="sub">Enter a short code to see its click stats.</div>
       <label for="codeInput">Short code</label>
       <input type="text" id="codeInput" placeholder="e.g. YfH7kE" />
@@ -236,14 +236,14 @@
 
       <div class="step">
         <div class="n">1</div>
-        <h3>✂️ Shorten</h3>
+        <h3>Shorten</h3>
         <p>You POST a long URL. A Lambda generates a 6-character code, stores
         <code>code → url</code> in DynamoDB, and returns the short link.</p>
       </div>
 
       <div class="step">
         <div class="n">2</div>
-        <h3>↪️ Redirect &amp; log</h3>
+        <h3>Redirect &amp; log</h3>
         <p>Opening the short link hits another Lambda. It looks up the original URL,
         sends a <code>301</code> redirect, and logs a click event (time, device,
         country) to a second DynamoDB table.</p>
@@ -251,14 +251,14 @@
 
       <div class="step">
         <div class="n">3</div>
-        <h3>📊 Analytics</h3>
+        <h3>Analytics</h3>
         <p>"Get stats" queries all click events for a code and aggregates them:
         total clicks, breakdown by device and by country.</p>
       </div>
 
     </div>
     <div class="note">
-      💡 Analytics counts <b>every open</b> of a short link — one click = one logged
+      Analytics counts <b>every open</b> of a short link — one click = one logged
       event (refreshes count too). Country shows <code>UNKNOWN</code> because the API
       is a plain regional endpoint without CloudFront geo-headers.
     </div>
@@ -286,7 +286,7 @@
     const btn = $('shortenBtn');
     const url = $('urlInput').value.trim();
     const res = $('shortenResult');
-    if (!url) { showResult(res, '⚠️ Please enter a URL.', true); return; }
+    if (!url) { showResult(res, 'Please enter a URL.', true); return; }
     btn.disabled = true; btn.textContent = 'Shortening…';
     try {
       // text/plain avoids a CORS preflight; Lambda parses the JSON body anyway.
@@ -296,10 +296,10 @@
         body: JSON.stringify({ url })
       });
       const data = await r.json();
-      if (!r.ok || data.error) { showResult(res, '❌ ' + (data.error || 'Something went wrong'), true); return; }
+      if (!r.ok || data.error) { showResult(res, (data.error || 'Something went wrong'), true); return; }
       showResult(res,
         '<div class="short">' +
-          '<span>🎉 ' + data.short_url + '</span>' +
+          '<span>' + data.short_url + '</span>' +
           '<a class="mini" href="' + data.short_url + '" target="_blank" rel="noopener">Open ↗</a>' +
           '<button class="mini" onclick="copyShort(this,\'' + data.short_url + '\')">Copy</button>' +
         '</div>' +
@@ -307,7 +307,7 @@
       );
       $('codeInput').value = data.code;
     } catch (e) {
-      showResult(res, '❌ Network error: ' + e.message, true);
+      showResult(res, 'Network error: ' + e.message, true);
     } finally {
       btn.disabled = false; btn.textContent = 'Shorten it →';
     }
@@ -336,12 +336,12 @@
     const btn = $('analyticsBtn');
     const code = $('codeInput').value.trim();
     const res = $('analyticsResult');
-    if (!code) { showResult(res, '⚠️ Enter a short code.', true); return; }
+    if (!code) { showResult(res, 'Enter a short code.', true); return; }
     btn.disabled = true; btn.textContent = 'Loading…';
     try {
       const r = await fetch(API + '/analytics/' + encodeURIComponent(code));
       const data = await r.json();
-      if (data.error) { showResult(res, '❌ ' + data.error, true); return; }
+      if (data.error) { showResult(res, data.error, true); return; }
       if (!data.total_clicks) { showResult(res, 'No clicks yet for <b>' + code + '</b>. Open its short link first!', false); return; }
       let html = '<div class="bignum">' + data.total_clicks + '</div>' +
                  '<span style="font-weight:600;margin-left:8px">total clicks</span>';
@@ -349,7 +349,7 @@
       if (data.by_country) { html += '<div class="stat-label">By country</div>' + bars(data.by_country); }
       showResult(res, html, false);
     } catch (e) {
-      showResult(res, '❌ Network error: ' + e.message, true);
+      showResult(res, 'Network error: ' + e.message, true);
     } finally {
       btn.disabled = false; btn.textContent = 'Get stats →';
     }
