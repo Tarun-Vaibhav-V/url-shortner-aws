@@ -11,13 +11,13 @@ class DecimalEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-dynamodb = boto3.resource('dynamodb')
 CLICKS_TABLE = os.environ.get('CLICKS_TABLE', 'url-shortener-clicks')
 
 
 def handler(event, context):
     code = event['pathParameters']['code']
     try:
+        dynamodb = boto3.resource('dynamodb')
         table = dynamodb.Table(CLICKS_TABLE)
         resp = table.query(
             KeyConditionExpression=Key('short_code').eq(code)

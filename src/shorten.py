@@ -1,6 +1,5 @@
 import json, boto3, hashlib, os, time
 
-dynamodb = boto3.resource('dynamodb')
 TABLE = os.environ.get('URLS_TABLE', 'url-shortener-urls')
 BASE_URL = os.environ.get('BASE_URL', 'https://your-api-id.execute-api.ap-south-1.amazonaws.com/prod')
 
@@ -22,6 +21,7 @@ def handler(event, context):
         if not url or not url.startswith(('http://', 'https://')):
             return {'statusCode': 400, 'body': json.dumps({'error': 'Invalid URL'})}
         code = generate_code(url)
+        dynamodb = boto3.resource('dynamodb')
         table = dynamodb.Table(TABLE)
         table.put_item(Item={
             'short_code': code,

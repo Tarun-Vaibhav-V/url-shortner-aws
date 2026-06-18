@@ -1,7 +1,6 @@
 import json, boto3, os, time
 from user_agents import parse as ua_parse
 
-dynamodb = boto3.resource('dynamodb')
 URLS_TABLE = os.environ.get('URLS_TABLE', 'url-shortener-urls')
 CLICKS_TABLE = os.environ.get('CLICKS_TABLE', 'url-shortener-clicks')
 
@@ -9,6 +8,7 @@ CLICKS_TABLE = os.environ.get('CLICKS_TABLE', 'url-shortener-clicks')
 def handler(event, context):
     code = event['pathParameters']['code']
     try:
+        dynamodb = boto3.resource('dynamodb')
         table = dynamodb.Table(URLS_TABLE)
         resp = table.get_item(Key={'short_code': code})
         item = resp.get('Item')
