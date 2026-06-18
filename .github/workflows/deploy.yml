@@ -16,6 +16,8 @@ jobs:
           python-version: '3.12'
       - run: pip install boto3 pytest moto user-agents
       - run: pytest tests/ -v
+        env:
+          AWS_DEFAULT_REGION: ap-south-1
 
   deploy:
     needs: test
