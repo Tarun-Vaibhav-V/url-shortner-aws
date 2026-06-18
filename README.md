@@ -2,7 +2,9 @@
 
 A production-grade serverless URL shortener with real-time analytics. Built with API Gateway, Lambda (Python 3.12), and DynamoDB. Deployed automatically via GitHub Actions on every push to main.
 
-**Live demo:** https://tg9mlyqb01.execute-api.ap-south-1.amazonaws.com/prod/shorten
+**🔗 Live demo (UI):** https://tarun-vaibhav-v.github.io/url-shortner-aws/
+
+**API base URL:** https://tg9mlyqb01.execute-api.ap-south-1.amazonaws.com/prod
 
 ## Architecture
 
