@@ -44,6 +44,19 @@ curl -I https://tg9mlyqb01.execute-api.ap-south-1.amazonaws.com/prod/YfH7kE
 curl https://tg9mlyqb01.execute-api.ap-south-1.amazonaws.com/prod/analytics/YfH7kE
 ```
 
+## Monitoring (CloudWatch)
+
+Each Lambda streams logs and metrics (Duration, Invocations, Errors, Throttles)
+to CloudWatch. To view the dashboard:
+
+```
+AWS Console -> CloudWatch -> Log groups -> /aws/lambda/url-shortener-redirect -> Metrics
+```
+
+![CloudWatch metrics](docs/cloudwatch.png)
+
+> Save your screenshot as `docs/cloudwatch.png` to render it here.
+
 ## Stack
 
 - AWS Lambda (Python 3.12)
