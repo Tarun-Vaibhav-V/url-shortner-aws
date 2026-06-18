@@ -1,0 +1,7 @@
+*.zip
+__pycache__/
+package_shorten/
+package_redirect/
+package_analytics/
+*.pyc
+.env

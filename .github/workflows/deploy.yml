@@ -1,0 +1,57 @@
+name: Deploy to AWS Lambda
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install boto3 pytest moto user-agents
+      - run: pytest tests/ -v
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Package and deploy shorten
+        run: |
+          pip install boto3 -t package_shorten/
+          cp src/shorten.py package_shorten/
+          cd package_shorten && zip -r ../shorten.zip . && cd ..
+          aws lambda update-function-code \
+            --function-name url-shortener-shorten \
+            --zip-file fileb://shorten.zip
+
+      - name: Package and deploy redirect
+        run: |
+          pip install boto3 user-agents -t package_redirect/
+          cp src/redirect.py package_redirect/
+          cd package_redirect && zip -r ../redirect.zip . && cd ..
+          aws lambda update-function-code \
+            --function-name url-shortener-redirect \
+            --zip-file fileb://redirect.zip
+
+      - name: Package and deploy analytics
+        run: |
+          pip install boto3 -t package_analytics/
+          cp src/analytics.py package_analytics/
+          cd package_analytics && zip -r ../analytics.zip . && cd ..
+          aws lambda update-function-code \
+            --function-name url-shortener-analytics \
+            --zip-file fileb://analytics.zip
