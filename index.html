@@ -142,6 +142,41 @@
   .bar-fill { height: 100%; background: var(--pink); }
   .bar-row .val { width: 28px; text-align: right; }
 
+  /* How it works */
+  .how { margin-top: 36px; }
+  .how > h2 {
+    font-size: 24px; font-weight: 700; margin-bottom: 4px;
+    display: inline-block; background: var(--pink);
+    border: var(--border); border-radius: 12px; padding: 6px 14px;
+    box-shadow: var(--shadow-sm); transform: rotate(-1deg);
+  }
+  .how .sub2 { font-size: 14px; font-weight: 500; margin: 14px 0 18px; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+  .step {
+    background: var(--cream); border: var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px;
+  }
+  .step .n {
+    width: 36px; height: 36px; border-radius: 10px; border: var(--border);
+    display: grid; place-items: center; font-weight: 700; font-size: 18px;
+    box-shadow: 3px 3px 0 var(--ink); margin-bottom: 12px;
+  }
+  .step:nth-child(1) .n { background: var(--yellow); }
+  .step:nth-child(2) .n { background: var(--mint); }
+  .step:nth-child(3) .n { background: var(--blue); }
+  .step h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .step p { font-size: 13.5px; font-weight: 500; line-height: 1.5; }
+  .step code {
+    background: #fff; border: 2px solid var(--ink); border-radius: 6px;
+    padding: 1px 6px; font-size: 12px; font-weight: 700;
+  }
+  .note {
+    margin-top: 18px; background: var(--yellow);
+    border: var(--border); border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 14px 16px; font-size: 13px; font-weight: 600; line-height: 1.5;
+  }
+
   .foot { text-align: center; margin-top: 40px; font-size: 13px; font-weight: 500; }
   .foot a { color: var(--ink); }
   .tag {
@@ -192,6 +227,41 @@
       <div class="result" id="analyticsResult"></div>
     </div>
 
+  </div>
+
+  <div class="how">
+    <h2>How it works</h2>
+    <div class="sub2">Fully serverless — no servers, no containers. Every piece runs on AWS Free Tier.</div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="n">1</div>
+        <h3>✂️ Shorten</h3>
+        <p>You POST a long URL. A Lambda generates a 6-character code, stores
+        <code>code → url</code> in DynamoDB, and returns the short link.</p>
+      </div>
+
+      <div class="step">
+        <div class="n">2</div>
+        <h3>↪️ Redirect &amp; log</h3>
+        <p>Opening the short link hits another Lambda. It looks up the original URL,
+        sends a <code>301</code> redirect, and logs a click event (time, device,
+        country) to a second DynamoDB table.</p>
+      </div>
+
+      <div class="step">
+        <div class="n">3</div>
+        <h3>📊 Analytics</h3>
+        <p>"Get stats" queries all click events for a code and aggregates them:
+        total clicks, breakdown by device and by country.</p>
+      </div>
+
+    </div>
+    <div class="note">
+      💡 Analytics counts <b>every open</b> of a short link — one click = one logged
+      event (refreshes count too). Country shows <code>UNKNOWN</code> because the API
+      is a plain regional endpoint without CloudFront geo-headers.
+    </div>
   </div>
 
   <div class="foot">
