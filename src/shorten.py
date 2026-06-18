@@ -2,6 +2,7 @@ import json, boto3, hashlib, os, time
 
 TABLE = os.environ.get('URLS_TABLE', 'url-shortener-urls')
 BASE_URL = os.environ.get('BASE_URL', 'https://your-api-id.execute-api.ap-south-1.amazonaws.com/prod')
+CORS = {'Access-Control-Allow-Origin': '*'}
 
 
 def generate_code(url: str) -> str:
@@ -19,7 +20,7 @@ def handler(event, context):
         body = json.loads(event.get('body', '{}'))
         url = body.get('url', '').strip()
         if not url or not url.startswith(('http://', 'https://')):
-            return {'statusCode': 400, 'body': json.dumps({'error': 'Invalid URL'})}
+            return {'statusCode': 400, 'headers': CORS, 'body': json.dumps({'error': 'Invalid URL'})}
         code = generate_code(url)
         dynamodb = boto3.resource('dynamodb')
         table = dynamodb.Table(TABLE)
@@ -31,8 +32,8 @@ def handler(event, context):
         })
         return {
             'statusCode': 200,
-            'headers': {'Access-Control-Allow-Origin': '*'},
+            'headers': CORS,
             'body': json.dumps({'short_url': f'{BASE_URL}/{code}', 'code': code})
         }
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({'error': str(e)})}
+        return {'statusCode': 500, 'headers': CORS, 'body': json.dumps({'error': str(e)})}

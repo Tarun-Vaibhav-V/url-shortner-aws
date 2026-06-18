@@ -12,6 +12,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 
 CLICKS_TABLE = os.environ.get('CLICKS_TABLE', 'url-shortener-clicks')
+CORS = {'Access-Control-Allow-Origin': '*'}
 
 
 def handler(event, context):
@@ -24,7 +25,8 @@ def handler(event, context):
         )
         items = resp.get('Items', [])
         if not items:
-            return {'statusCode': 200, 'body': json.dumps({'total_clicks': 0})}
+            return {'statusCode': 200, 'headers': CORS,
+                    'body': json.dumps({'short_code': code, 'total_clicks': 0})}
 
         countries = Counter(i.get('country', 'UNKNOWN') for i in items)
         devices = Counter(i.get('device', 'unknown') for i in items)
@@ -39,7 +41,7 @@ def handler(event, context):
 
         return {
             'statusCode': 200,
-            'headers': {'Access-Control-Allow-Origin': '*'},
+            'headers': CORS,
             'body': json.dumps({
                 'short_code': code,
                 'total_clicks': len(items),
@@ -49,4 +51,4 @@ def handler(event, context):
             }, cls=DecimalEncoder)
         }
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({'error': str(e)})}
+        return {'statusCode': 500, 'headers': CORS, 'body': json.dumps({'error': str(e)})}
