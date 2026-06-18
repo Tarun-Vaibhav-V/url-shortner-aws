@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shortly — Serverless URL Shortener</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #111111;
+    --pink: #ff6fb5;
+    --mint: #7be8b0;
+    --yellow: #ffdd57;
+    --blue: #8ec5ff;
+    --cream: #fffdf5;
+    --bg: #b8f2d8;
+    --shadow: 6px 6px 0 var(--ink);
+    --shadow-sm: 4px 4px 0 var(--ink);
+    --radius: 18px;
+    --border: 3px solid var(--ink);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: linear-gradient(135deg, #d6fff0 0%, var(--bg) 50%, #a8edcf 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+
+  /* Top bar */
+  .topbar {
+    background: var(--pink);
+    border: var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 22px; }
+  .logo .dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--cream); border: 3px solid var(--ink);
+    display: grid; place-items: center; font-size: 14px;
+  }
+  .topbar .pill {
+    background: var(--cream); border: var(--border); border-radius: 999px;
+    padding: 8px 16px; font-weight: 600; font-size: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Hero */
+  .hero { margin-bottom: 28px; padding: 4px 6px; }
+  .hero h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.05; font-weight: 700; }
+  .hero h1 .hl {
+    background: var(--yellow); padding: 0 8px;
+    border: 3px solid var(--ink); border-radius: 8px;
+    display: inline-block; transform: rotate(-1.5deg);
+  }
+  .hero p { margin-top: 14px; font-size: 17px; font-weight: 500; max-width: 560px; }
+
+  /* Card grid */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--cream);
+    border: var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+  }
+  .card h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .card .sub { font-size: 13px; font-weight: 500; color: #555; margin-bottom: 18px; }
+
+  label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  input[type=text] {
+    width: 100%;
+    font-family: inherit; font-size: 15px; font-weight: 500;
+    padding: 12px 14px;
+    border: var(--border); border-radius: 12px;
+    background: #fff; color: var(--ink);
+    box-shadow: var(--shadow-sm);
+    outline: none;
+  }
+  input[type=text]:focus { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink); }
+
+  button.btn {
+    margin-top: 14px; width: 100%;
+    font-family: inherit; font-size: 16px; font-weight: 700;
+    padding: 13px 16px; cursor: pointer;
+    border: var(--border); border-radius: 12px;
+    background: var(--ink); color: #fff;
+    box-shadow: var(--shadow-sm);
+    transition: transform .05s ease, box-shadow .05s ease;
+  }
+  button.btn.pink { background: var(--pink); color: var(--ink); }
+  button.btn.blue { background: var(--blue); color: var(--ink); }
+  button.btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink); }
+  button.btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+  button.btn:disabled { opacity: .55; cursor: wait; }
+
+  /* Result block */
+  .result {
+    margin-top: 18px; padding: 14px;
+    border: var(--border); border-radius: 12px;
+    background: var(--mint);
+    display: none;
+  }
+  .result.show { display: block; animation: pop .15s ease; }
+  @keyframes pop { from { transform: scale(.96); } to { transform: scale(1); } }
+  .result.err { background: #ff9a9a; }
+  .result .short {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-weight: 700; font-size: 15px; word-break: break-all;
+  }
+  .result a { color: var(--ink); }
+  .mini {
+    border: 2px solid var(--ink); border-radius: 8px;
+    background: var(--cream); padding: 5px 10px; font-size: 12px; font-weight: 700;
+    cursor: pointer; text-decoration: none; color: var(--ink);
+  }
+  .mini:hover { background: var(--yellow); }
+
+  /* Analytics */
+  .bignum {
+    font-size: 44px; font-weight: 700; line-height: 1;
+    background: var(--yellow); border: var(--border); border-radius: 12px;
+    padding: 10px 16px; display: inline-block; box-shadow: var(--shadow-sm);
+  }
+  .stat-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin: 16px 0 8px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+  .bar-row .name { width: 92px; flex-shrink: 0; }
+  .bar-track { flex: 1; background: #fff; border: 2px solid var(--ink); border-radius: 7px; height: 20px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--pink); }
+  .bar-row .val { width: 28px; text-align: right; }
+
+  .foot { text-align: center; margin-top: 40px; font-size: 13px; font-weight: 500; }
+  .foot a { color: var(--ink); }
+  .tag {
+    display: inline-block; background: var(--cream); border: 2px solid var(--ink);
+    border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; margin: 2px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="logo"><span class="dot">🔗</span> SHORTLY</div>
+    <a class="pill" href="https://github.com/Tarun-Vaibhav-V/url-shortner-aws" target="_blank" rel="noopener">View source ↗</a>
+  </div>
+
+  <div class="hero">
+    <h1>Shorten any URL.<br /><span class="hl">Track every click.</span></h1>
+    <p>A fully serverless URL shortener running on AWS Lambda, DynamoDB &amp; API Gateway — with real-time click analytics. $0 infrastructure cost.</p>
+    <div style="margin-top:12px">
+      <span class="tag">AWS Lambda</span>
+      <span class="tag">DynamoDB</span>
+      <span class="tag">API Gateway</span>
+      <span class="tag">CI/CD</span>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Shorten card -->
+    <div class="card">
+      <h2>✂️ Shorten</h2>
+      <div class="sub">Paste a long link, get a short one.</div>
+      <label for="urlInput">Long URL</label>
+      <input type="text" id="urlInput" placeholder="https://example.com/very/long/path" />
+      <button class="btn pink" id="shortenBtn">Shorten it →</button>
+      <div class="result" id="shortenResult"></div>
+    </div>
+
+    <!-- Analytics card -->
+    <div class="card">
+      <h2>📊 Analytics</h2>
+      <div class="sub">Enter a short code to see its click stats.</div>
+      <label for="codeInput">Short code</label>
+      <input type="text" id="codeInput" placeholder="e.g. YfH7kE" />
+      <button class="btn blue" id="analyticsBtn">Get stats →</button>
+      <div class="result" id="analyticsResult"></div>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    Built by <a href="https://github.com/Tarun-Vaibhav-V" target="_blank" rel="noopener">Tarun</a> ·
+    Serverless on AWS · <a href="https://github.com/Tarun-Vaibhav-V/url-shortner-aws" target="_blank" rel="noopener">Source &amp; docs</a>
+  </div>
+
+</div>
+
+<script>
+  const API = 'https://tg9mlyqb01.execute-api.ap-south-1.amazonaws.com/prod';
+
+  const $ = (id) => document.getElementById(id);
+
+  function showResult(el, html, isErr) {
+    el.className = 'result show' + (isErr ? ' err' : '');
+    el.innerHTML = html;
+  }
+
+  // ---- Shorten ----
+  async function shorten() {
+    const btn = $('shortenBtn');
+    const url = $('urlInput').value.trim();
+    const res = $('shortenResult');
+    if (!url) { showResult(res, '⚠️ Please enter a URL.', true); return; }
+    btn.disabled = true; btn.textContent = 'Shortening…';
+    try {
+      // text/plain avoids a CORS preflight; Lambda parses the JSON body anyway.
+      const r = await fetch(API + '/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ url })
+      });
+      const data = await r.json();
+      if (!r.ok || data.error) { showResult(res, '❌ ' + (data.error || 'Something went wrong'), true); return; }
+      showResult(res,
+        '<div class="short">' +
+          '<span>🎉 ' + data.short_url + '</span>' +
+          '<a class="mini" href="' + data.short_url + '" target="_blank" rel="noopener">Open ↗</a>' +
+          '<button class="mini" onclick="copyShort(this,\'' + data.short_url + '\')">Copy</button>' +
+        '</div>' +
+        '<div style="margin-top:8px;font-size:12px;font-weight:600">Code: ' + data.code + ' — auto-filled into Analytics →</div>'
+      );
+      $('codeInput').value = data.code;
+    } catch (e) {
+      showResult(res, '❌ Network error: ' + e.message, true);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Shorten it →';
+    }
+  }
+
+  function copyShort(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const old = btn.textContent; btn.textContent = 'Copied!';
+      setTimeout(() => (btn.textContent = old), 1200);
+    });
+  }
+
+  // ---- Analytics ----
+  function bars(obj, total) {
+    const max = Math.max(...Object.values(obj), 1);
+    return Object.entries(obj).map(([k, v]) =>
+      '<div class="bar-row">' +
+        '<span class="name">' + k + '</span>' +
+        '<span class="bar-track"><span class="bar-fill" style="width:' + (v / max * 100) + '%"></span></span>' +
+        '<span class="val">' + v + '</span>' +
+      '</div>'
+    ).join('');
+  }
+
+  async function analytics() {
+    const btn = $('analyticsBtn');
+    const code = $('codeInput').value.trim();
+    const res = $('analyticsResult');
+    if (!code) { showResult(res, '⚠️ Enter a short code.', true); return; }
+    btn.disabled = true; btn.textContent = 'Loading…';
+    try {
+      const r = await fetch(API + '/analytics/' + encodeURIComponent(code));
+      const data = await r.json();
+      if (data.error) { showResult(res, '❌ ' + data.error, true); return; }
+      if (!data.total_clicks) { showResult(res, 'No clicks yet for <b>' + code + '</b>. Open its short link first!', false); return; }
+      let html = '<div class="bignum">' + data.total_clicks + '</div>' +
+                 '<span style="font-weight:600;margin-left:8px">total clicks</span>';
+      if (data.by_device) { html += '<div class="stat-label">By device</div>' + bars(data.by_device); }
+      if (data.by_country) { html += '<div class="stat-label">By country</div>' + bars(data.by_country); }
+      showResult(res, html, false);
+    } catch (e) {
+      showResult(res, '❌ Network error: ' + e.message, true);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Get stats →';
+    }
+  }
+
+  $('shortenBtn').addEventListener('click', shorten);
+  $('analyticsBtn').addEventListener('click', analytics);
+  $('urlInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') shorten(); });
+  $('codeInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') analytics(); });
+</script>
+</body>
+</html>
